@@ -2,8 +2,10 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, List
-import sqlite3 # 💡 改用 Python 內建輕量資料庫，完全免費
+import psycopg2 # 💡 業界標準：改用 PostgreSQL 雲端驅動
+from psycopg2.extras import RealDictCursor
 import json
+import os
 
 app = FastAPI()
 
@@ -15,19 +17,30 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 💡 初始化資料庫：如果檔案不存在，會自動在雲端開好資料表
+# 🚀 智慧連線設定：直接讀取雲端平台給的資料庫網址 (DATABASE_URL)
+# 如果在本機找不到，就留空（方便偵錯）
+DATABASE_URL = os.getenv("DATABASE_URL", "你的本機測試憑證或留空")
+
+def get_db_connection():
+    # 直接用雲端資料庫提供的超強 URL 一鍵連線
+    return psycopg2.connect(DATABASE_URL, sslmode='require')
+
+# 💡 初始化雲端資料表
 def init_db():
-    conn = sqlite3.connect('running.db')
+    if not DATABASE_URL or DATABASE_URL == "你的本機測試憑證或留空":
+        return
+    conn = get_db_connection()
     cursor = conn.cursor()
+    # 建立 PostgreSQL 語法的資料表
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS running_logs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             run_date TEXT UNIQUE NOT NULL,              
             distance_km REAL NOT NULL,
-            duration_text TEXT NOT NULL,
-            avg_pace_text TEXT NOT NULL,
+            duration_text VARCHAR(10) NOT NULL,
+            avg_pace_text VARCHAR(10) NOT NULL,
             speed_kmh REAL NOT NULL,            
-            tag_text TEXT DEFAULT 'as usual',     
+            tag_text VARCHAR(50) DEFAULT 'as usual',     
             cadence_spm INTEGER,
             steps_count INTEGER,               
             calories_burned INTEGER,           
@@ -36,15 +49,19 @@ def init_db():
             photo_base64 TEXT,                      
             temperature INTEGER,
             wind_speed REAL,
-            wind_dir TEXT,
+            wind_dir VARCHAR(10),
             humidity INTEGER,
             km_splits TEXT
         )
     """)
     conn.commit()
+    cursor.close()
     conn.close()
 
-init_db()
+try:
+    init_db()
+except Exception as e:
+    print("資料表初始化失敗，請檢查 DATABASE_URL:", e)
 
 class RunLog(BaseModel):
     run_date: str
@@ -68,9 +85,8 @@ class RunLog(BaseModel):
 @app.get("/api/logs")
 def get_all_logs():
     try:
-        conn = sqlite3.connect('running.db')
-        conn.row_factory = sqlite3.Row # 讓資料可以用欄位名讀取
-        cursor = conn.cursor()
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
         cursor.execute("SELECT * FROM running_logs ORDER BY run_date ASC")
         rows = cursor.fetchall()
         
@@ -97,6 +113,7 @@ def get_all_logs():
                 "humidity": row['humidity'],
                 "km_splits": row['km_splits'] if row['km_splits'] else ""
             }
+        cursor.close()
         conn.close()
         return result
     except Exception as e:
@@ -105,16 +122,26 @@ def get_all_logs():
 @app.post("/api/logs")
 def save_log(log: RunLog):
     try:
-        conn = sqlite3.connect('running.db')
+        conn = get_db_connection()
         cursor = conn.cursor()
         
-        # 使用 SQLite 的 INSERT OR REPLACE 語法達到原本 ON DUPLICATE KEY UPDATE 的效果
+        # PostgreSQL 的 💥 ON CONFLICT 覆蓋語法 (等於 MySQL 的 ON DUPLICATE KEY)
         sql = """
-            INSERT OR REPLACE INTO running_logs 
+            INSERT INTO running_logs 
             (run_date, distance_km, duration_text, avg_pace_text, speed_kmh, tag_text, 
              cadence_spm, steps_count, calories_burned, nausea_percentage, status_note, photo_base64,
              temperature, wind_speed, wind_dir, humidity, km_splits)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (run_date) DO UPDATE SET
+            distance_km=EXCLUDED.distance_km, duration_text=EXCLUDED.duration_text, 
+            avg_pace_text=EXCLUDED.avg_pace_text, speed_kmh=EXCLUDED.speed_kmh, 
+            tag_text=EXCLUDED.tag_text, cadence_spm=EXCLUDED.cadence_spm, 
+            steps_count=EXCLUDED.steps_count, calories_burned=EXCLUDED.calories_burned,
+            nausea_percentage=EXCLUDED.nausea_percentage, status_note=EXCLUDED.status_note,
+            photo_base64=CASE WHEN EXCLUDED.photo_base64 = '[]' THEN running_logs.photo_base64 ELSE EXCLUDED.photo_base64 END,
+            temperature=EXCLUDED.temperature, wind_speed=EXCLUDED.wind_speed,
+            wind_dir=EXCLUDED.wind_dir, humidity=EXCLUDED.humidity,
+            km_splits=EXCLUDED.km_splits
         """
         
         cadence = int(log.cad) if log.cad and log.cad.isdigit() else None
@@ -129,19 +156,21 @@ def save_log(log: RunLog):
         
         cursor.execute(sql, val)
         conn.commit()
+        cursor.close()
         conn.close()
-        return {"status": "success", "message": "儲存成功"}
+        return {"status": "success", "message": "雲端資料庫永久儲存成功"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.delete("/api/logs/{run_date}")
 def delete_log(run_date: str):
     try:
-        conn = sqlite3.connect('running.db')
+        conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM running_logs WHERE run_date = ?", (run_date,))
+        cursor.execute("DELETE FROM running_logs WHERE run_date = %s", (run_date,))
         conn.commit()
+        cursor.close()
         conn.close()
-        return {"status": "success", "message": "已刪除"}
+        return {"status": "success", "message": "已自雲端資料庫刪除"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
