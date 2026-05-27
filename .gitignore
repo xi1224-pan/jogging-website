@@ -1,0 +1,13 @@
+# 隱藏本地環境變數
+.env
+*.env
+
+# 隱藏 Python 編譯暫存檔
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 隱藏作業系統暫存檔
+.DS_Store
+Thumbs.db
