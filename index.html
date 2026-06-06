@@ -97,14 +97,14 @@
                 <div class="form-group"><label>平均配速</label><input type="text" id="pace" placeholder="自動計算"></div>
                 <div class="form-group"><label>平均速度 (km/h)</label><input type="text" id="speed" placeholder="自動計算"></div>
             </div>
-            <div class="form-group"><label>特別情境 / 備註標籤</label><input type="text" id="tag"></div>
+            <div class="form-group"><label>特別情境 / 備註標籤 (💡換天跑可手動填 2000M 或 4000M 強制分組)</label><input type="text" id="tag"></div>
             <div class="form-row">
                 <div class="form-group"><label>總步數 (步)</label><input type="text" id="steps"></div>
                 <div class="form-group"><label>消耗熱量 (大卡)</label><input type="text" id="calories"></div>
             </div>
             <div class="form-row">
                 <div class="form-group"><label>平均步頻 (spm)</label><input type="text" id="cadence"></div>
-                <div class="form-group"><label>體感不適指數 (%)</label><input type="text" id="nausea"></div>
+                <div class="form-group"><label>體感不適度 (%) / RPE</label><input type="text" id="nausea"></div>
             </div>
             <div class="form-group"><label>身體狀況與痛點紀錄</label><textarea id="statusNote"></textarea></div>
             <div class="form-group"><label>上傳截圖備份 📸</label><input type="file" id="runPhoto" accept="image/*" multiple></div>
@@ -131,7 +131,7 @@
                 <div class="stat-card"><label>總步數</label><div class="value" id="vSteps">-</div></div>
                 <div class="stat-card"><label>消耗熱量</label><div class="value" id="vCal">-</div></div>
                 <div class="stat-card"><label>平均步頻</label><div class="value" id="vCad">-</div></div>
-                <div class="stat-card"><label>體感不適指數</label><div class="value" id="vNau" style="color: var(--primary-color);">-</div></div>
+                <div class="stat-card"><label>體感不適度</label><div class="value" id="vNau" style="color: var(--primary-color);">-</div></div>
             </div>
 
             <div class="split-box" id="vSplitBox" style="display:none;"></div>
@@ -139,7 +139,7 @@
             <div class="form-group" style="margin-top:10px;"><label>🏃 訓練情境</label><div><span id="vTag" class="tag-badge">-</span></div></div>
             <div class="form-group"><label>當日身體反饋</label><p id="vNote"></p></div>
             <div class="form-group"><label>📸 訓練與天氣截圖相簿</label><div id="vPhotoGallery" class="photo-gallery"></div></div>
-            <div class="insight-box"><label style="color: var(--primary-color); font-weight: bold;">📊 同天對比歷史脈絡</label><p id="localInsight"></p></div>
+            <div class="insight-box"><label style="color: var(--primary-color); font-weight: bold;">📊 同組別歷史脈絡對比</label><p id="localInsight"></p></div>
             <div class="btn-group">
                 <button id="btnEdit" class="btn" style="background-color: #0066cc;">✏️ 編輯數據</button>
                 <button id="btnDelete" class="btn" style="background-color: #e8e8ed; color: #ff453a;">❌ 刪除紀錄</button>
@@ -154,16 +154,16 @@
         <div class="chart-controls">
             <label>切換分析維度：</label>
             <select id="analysisDimension" class="chart-select">
-                <option value="temp_hum_nausea">1. 溫濕度(體感) vs 體感不適指數</option>
+                <option value="temp_hum_nausea">1. 溫濕度(體感) vs 體感不適度</option>
                 <option value="temp_speed">2. 氣溫 vs 平均速度</option>
-                <option value="speed_nausea">3. 平均速度 vs 體感不適指數 (乳酸閥值)</option>
+                <option value="speed_nausea">3. 平均速度 vs 體感不適度 (乳酸閾值拐點)</option>
                 <option value="temp_hum_speed">4. 溫濕度(體感) vs 平均速度</option>
                 <option value="cad_speed">5. 平均步頻 vs 平均速度 (步幅效益)</option>
             </select>
             <select id="analysisDayFilter" class="chart-select">
-                <option value="both">檢視：週三 & 週日 全開放</option>
-                <option value="wed">檢視：只看 週三 (週間組)</option>
-                <option value="sun">檢視：只看 週日 (週末組)</option>
+                <option value="both">檢視：2000M & 4000M 全開放</option>
+                <option value="wed">檢視：只看 2000M 組</option>
+                <option value="sun">檢視：只看 4000M 組</option>
             </select>
         </div>
         <div style="font-weight: bold; color: #ff5722; margin-bottom: 5px;" id="correlationResult">相關係數 $r$ = 計算中...</div>
@@ -175,19 +175,19 @@
         <div class="chart-controls">
             <label>切換訓練組別：</label>
             <select id="trendDayFilter" class="chart-select">
-                <option value="wed">🔵 週三訓練組 (週間歷史趨勢)</option>
-                <option value="sun">🔴 週日自主組 (週末歷史趨勢)</option>
+                <option value="wed">🔵 2000M 訓練組 (歷史趨勢)</option>
+                <option value="sun">🔴 4000M 訓練組 (歷史趨勢)</option>
             </select>
         </div>
         <div class="chart-container"><canvas id="trendLineChart"></canvas></div>
     </div>
 
     <div class="card">
-        <h2>📊 數據樞紐分析總覽 (週三 vs 週日)</h2>
+        <h2>📊 數據樞紐分析總覽 (2000M vs 4000M)</h2>
         <table class="pivot-table">
             <thead>
                 <tr>
-                    <th>分組</th><th>累積里程</th><th>訓練次數</th><th>平均速度</th><th>平均累積熱量</th><th>平均體感不適指數</th>
+                    <th>分組強度</th><th>累積里程</th><th>訓練次數</th><th>平均速度</th><th>平均累積熱量</th><th>平均體感不適度</th>
                     <th style="color: #ff5722; font-weight: bold;">平均 1-2k 掉速</th>
                     <th style="color: #8600e6; font-weight: bold;">平均 2-3k 掉速</th>
                     <th style="color: #0066cc; font-weight: bold;">平均 3-4k 掉速</th>
@@ -196,7 +196,7 @@
             </thead>
             <tbody>
                 <tr>
-                    <td class="wednesday-text">週三 (週間組)</td><td id="wedTotalDist">0.00 km</td><td id="wedTotalCount">0 次</td>
+                    <td class="wednesday-text" style="font-weight: bold; color: #0066cc;">2000M 組</td><td id="wedTotalDist">0.00 km</td><td id="wedTotalCount">0 次</td>
                     <td id="wedAvgSpeed">0.0 km/h</td><td id="wedAvgCal">0 kcal</td><td id="wedAvgNausea">0 %</td>
                     <td id="wedStage1" style="font-weight: bold; color: #0066cc;">0.00 %</td>
                     <td id="wedStage2" style="font-weight: bold; color: #6e6e73;">--</td>
@@ -204,7 +204,7 @@
                     <td id="wedStage4" style="font-weight: bold; color: #0066cc;">0.00 %</td>
                 </tr>
                 <tr>
-                    <td class="sunday-text">週日 (週末組)</td><td id="sunTotalDist">0.00 km</td><td id="sunTotalCount">0 次</td>
+                    <td class="sunday-text" style="font-weight: bold; color: #ff5722;">4000M 組</td><td id="sunTotalDist">0.00 km</td><td id="sunTotalCount">0 次</td>
                     <td id="sunAvgSpeed">0.0 km/h</td><td id="sunAvgCal">0 kcal</td><td id="sunAvgNausea">0 %</td>
                     <td id="sunStage1" style="font-weight: bold; color: #ff5722;">0.00 %</td>
                     <td id="sunStage2" style="font-weight: bold; color: #ff5722;">0.00 %</td>
@@ -217,16 +217,16 @@
 
     <div class="card" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
         <div>
-            <h3 style="font-size:1rem; margin-bottom:10px; color:#1d8127;">🚀 週三 (週間) 速度極端表 (Top 2 / Bottom 2)</h3>
+            <h3 style="font-size:1rem; margin-bottom:10px; color:#1d8127;">🚀 2000M 組 速度極端表 (Top 2 / Bottom 2)</h3>
             <table class="pivot-table" id="wedSpeedTable">
-                <thead><tr><th>日期 (類型)</th><th>速度</th><th>痛苦值</th><th>環境特徵</th></tr></thead>
+                <thead><tr><th>日期 (類型)</th><th>速度</th><th>不適度</th><th>環境特徵</th></tr></thead>
                 <tbody></tbody>
             </table>
         </div>
         <div>
-            <h3 style="font-size:1rem; margin-bottom:10px; color:#8600e6;">🔮 週日 (週末) 速度極端表 (Top 2 / Bottom 2)</h3>
+            <h3 style="font-size:1rem; margin-bottom:10px; color:#8600e6;">🔮 4000M 組 速度極端表 (Top 2 / Bottom 2)</h3>
             <table class="pivot-table" id="sunSpeedTable">
-                <thead><tr><th>日期 (類型)</th><th>速度</th><th>痛苦值</th><th>環境特徵</th></tr></thead>
+                <thead><tr><th>日期 (類型)</th><th>速度</th><th>不適度</th><th>環境特徵</th></tr></thead>
                 <tbody></tbody>
             </table>
         </div>
@@ -234,16 +234,16 @@
 
     <div class="card" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
         <div>
-            <h3 style="font-size:1rem; margin-bottom:10px; color:#ff5722;">🤮 週三 (週間) 不適體感極端表 (最痛苦 Top 3)</h3>
+            <h3 style="font-size:1rem; margin-bottom:10px; color:#ff5722;">🤮 2000M 組 體感生理極端表 (最不適 Top 3)</h3>
             <table class="pivot-table" id="wedNauseaTable">
-                <thead><tr><th>日期 (類型)</th><th>痛苦值</th><th>速度</th><th>環境特徵</th></tr></thead>
+                <thead><tr><th>日期 (類型)</th><th>不適度</th><th>速度</th><th>環境特徵</th></tr></thead>
                 <tbody></tbody>
             </table>
         </div>
         <div>
-            <h3 style="font-size:1rem; margin-bottom:10px; color:#e64a19;">🤮 週日 (週末) 不適體感極端表 (最痛苦 Top 3)</h3>
+            <h3 style="font-size:1rem; margin-bottom:10px; color:#e64a19;">🤮 4000M 組 體感生理極端表 (最不適 Top 3)</h3>
             <table class="pivot-table" id="sunNauseaTable">
-                <thead><tr><th>日期 (類型)</th><th>痛苦值</th><th>速度</th><th>環境特徵</th></tr></thead>
+                <thead><tr><th>日期 (類型)</th><th>不適度</th><th>速度</th><th>環境特徵</th></tr></thead>
                 <tbody></tbody>
             </table>
         </div>
@@ -251,15 +251,13 @@
 </div>
 
 <script>
-// 🔑 刪除 localhost 判斷，直接鎖定 Render 雲端後端網址
     const API_URL = "https://jog-website.onrender.com/api/logs"; 
-    
     let db = {};
     let cYear = 2026, cMonth = 4; 
     let selectedDate = null;
     let myChart = null;
     let trendLineChart = null; 
-    let isEditing = false; // 💡 順手幫你補上 let 關鍵字，維持變數宣告嚴謹度
+    isEditing = false;
 
     async function fetchLogs() {
         try {
@@ -308,18 +306,32 @@
         return `${String(m).padStart(2,'0')}'${String(s).padStart(2,'0')}"`;
     }
 
+    // 💡 核心智慧分流判定演算法
+    function getGroupMode(dateStr, tagText) {
+        const tag = (tagText || "").toUpperCase();
+        // 優先權 1：如果標籤手動輸入了強制分組關鍵字
+        if (tag.includes("2000M")) return "2000M";
+        if (tag.includes("4000M")) return "4000M";
+        
+        // 優先權 2：如果沒有手動輸入，則照原本的星期幾自動 fallback 防呆
+        const dayOfWeek = new Date(dateStr).getDay();
+        if (dayOfWeek === 3) return "2000M";
+        if (dayOfWeek === 0) return "4000M";
+        return "OTHER";
+    }
+
     function loadDate(dStr) {
         selectedDate = dStr; const dateObj = new Date(dStr);
         const dayOfWeekStr = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"][dateObj.getDay()];
-        document.getElementById('panelTitle').innerText = `📅 訓練看板：${dStr} (${dayOfWeekStr})`;
-        document.getElementById('btnCancelEdit').style.display = 'none';
-        document.getElementById('btnSubmitForm').innerText = '確認儲存數據';
-
+        
         if(db[dStr] && !isEditing) {
             document.getElementById('runForm').style.display = 'none';
             document.getElementById('runDataView').style.display = 'block';
             const data = db[dStr];
             
+            const currentGroup = getGroupMode(dStr, data.tag);
+            document.getElementById('panelTitle').innerText = `📅 訓練看板：${dStr} (${dayOfWeekStr}) - 分流：[${currentGroup}組]`;
+
             document.getElementById('vdTemp').innerText = data.temperature ? data.temperature + ' °C' : '--';
             document.getElementById('vdHumi').innerText = data.humidity ? data.humidity + ' %' : '--';
             document.getElementById('vdWindSpeed').innerText = data.wind_speed ? data.wind_speed + ' km/h' : '--';
@@ -389,8 +401,9 @@
                 });
             } else { gallery.innerHTML = '<span style="color: var(--text-muted); font-size: 0.9rem;">未上傳圖片</span>'; }
             
-            generateLocalInsight(dStr, dateObj.getDay(), data);
+            generateLocalInsight(dStr, currentGroup, data);
         } else {
+            document.getElementById('panelTitle').innerText = `📅 訓練看板：${dStr} (${dayOfWeekStr})`;
             document.getElementById('runDataView').style.display = 'none'; document.getElementById('runForm').style.display = 'block';
             if(!isEditing) { document.getElementById('runForm').reset(); document.getElementById('tag').value = "as usual"; }
         }
@@ -410,17 +423,18 @@
         document.getElementById('btnSubmitForm').innerText = '儲存修改'; document.getElementById('btnCancelEdit').style.display = 'block';
     }
 
-    function generateLocalInsight(currentStr, currentDayOfWeek, currentData) {
-        const allDates = Object.keys(db).sort(); const sameDayOfWeekDates = allDates.filter(d => new Date(d).getDay() === currentDayOfWeek);
-        const currentIndex = sameDayOfWeekDates.indexOf(currentStr); const insightEl = document.getElementById('localInsight');
-        if (currentIndex > 0) {
-            const prevDate = sameDayOfWeekDates[currentIndex - 1]; const prevData = db[prevDate];
-            const dayName = currentDayOfWeek === 3 ? "週三" : currentDayOfWeek === 0 ? "週日" : "同天";
-            insightEl.innerHTML = `上一筆<strong>${dayName}</strong>的紀錄在 <strong>${prevDate}</strong> (${prevData.tag})：<br>` +
+    function generateLocalInsight(currentStr, currentGroup, currentData) {
+        const allDates = Object.keys(db).sort(); 
+        const sameGroupDates = allDates.filter(d => getGroupMode(d, db[d].tag) === currentGroup);
+        const currentIndex = sameGroupDates.indexOf(currentStr); const insightEl = document.getElementById('localInsight');
+        
+        if (currentIndex > 0 && currentGroup !== "OTHER") {
+            const prevDate = sameGroupDates[currentIndex - 1]; const prevData = db[prevDate];
+            insightEl.innerHTML = `上一筆<strong>${currentGroup}組</strong>的紀錄在 <strong>${prevDate}</strong> (${prevData.tag})：<br>` +
                                   `* 速度對比：${prevData.speed} km/h ➔ ${currentData.speed} km/h<br>` +
-                                  `* 不適體感：${prevData.nau}% ➔ ${currentData.nau}%<br>` + 
+                                  `* 體感不適：${prevData.nau}% ➔ ${currentData.nau}%<br>` + 
                                   `* 環境對比：${prevData.temperature||'--'}°C / ${prevData.humidity||'--'}% ➔ ${currentData.temperature||'--'}°C / ${currentData.humidity||'--'}%`;
-        } else { insightEl.innerText = "這是該分組歷史資料庫中的第一筆紀錄，暫無同組對比數據。"; }
+        } else { insightEl.innerText = `這是 [${currentGroup}] 資料庫中的基礎紀錄，暫無同組對比數據。`; }
     }
 
     function calculateCorrelation(xArr, yArr) {
@@ -454,9 +468,8 @@
         const lineLabels = [];
         const lineData = [];
 
-        // 💡 建立四大科學指標演進計量器
         let wedS1Sum = 0, wedS1Count = 0;
-        let wedS4Sum = 0, wedS4Count = 0; // 週三的「後段尾數」
+        let wedS4Sum = 0, wedS4Count = 0;
 
         let sunS1Sum = 0, sunS1Count = 0;
         let sunS2Sum = 0, sunS2Count = 0;
@@ -464,7 +477,9 @@
         let sunS4Sum = 0, sunS4Count = 0;
 
         sortedDates.forEach(date => {
-            const data = db[date]; const dayOfWeek = new Date(date).getDay();
+            const data = db[date]; 
+            const groupMode = getGroupMode(date, data.tag); // 💡 全面升級使用智慧標籤分組
+            
             const distVal = parseFloat(data.dist) || 0; const nauVal = parseInt(data.nau) || 0;
             const speedVal = parseFloat(data.speed) || 0; const calVal = parseInt(data.calories) || 0;
             const tempVal = parseInt(data.temperature) || null; const humiVal = parseInt(data.humidity) || null;
@@ -473,7 +488,6 @@
             const heatIndex = tempVal && humiVal ? tempVal + (humiVal * 0.1) : null;
             const logItem = { date: date.substring(5), speed: speedVal, nausea: nauVal, env: `${tempVal||'--'}°C/${humiVal||'--'}% ${data.wind_dir||''}` };
 
-            // 💡 逐公里精細大清洗演算法
             if (data.km_splits) {
                 const splits = data.km_splits.split(',');
                 let pSecs = [];
@@ -486,30 +500,26 @@
                     }
                 });
 
-                // 【第一階段：1-2k】 
                 if (pSecs.length >= 2 && pSecs[0] > 0) {
                     const dec = ((pSecs[1] - pSecs[0]) / pSecs[0]) * 100;
-                    if (dayOfWeek === 3) { wedS1Sum += dec; wedS1Count++; }
-                    else if (dayOfWeek === 0) { sunS1Sum += dec; sunS1Count++; }
+                    if (groupMode === "2000M") { wedS1Sum += dec; wedS1Count++; }
+                    else if (groupMode === "4000M") { sunS1Sum += dec; sunS1Count++; }
                 }
 
-                // 【第二階段：2-3k】(僅週日長距離需要)
-                if (dayOfWeek === 0 && pSecs.length >= 3 && pSecs[1] > 0) {
+                if (groupMode === "4000M" && pSecs.length >= 3 && pSecs[1] > 0) {
                     const dec = ((pSecs[2] - pSecs[1]) / pSecs[1]) * 100;
                     sunS2Sum += dec; sunS2Count++;
                 }
 
-                // 【第三階段：3-4k】(僅週日長距離需要)
-                if (dayOfWeek === 0 && pSecs.length >= 4 && pSecs[2] > 0) {
+                if (groupMode === "4000M" && pSecs.length >= 4 && pSecs[2] > 0) {
                     const dec = ((pSecs[3] - pSecs[2]) / pSecs[2]) * 100;
                     sunS3Sum += dec; sunS3Count++;
                 }
 
-                // 【第四階段：4-尾數】(週三若跑2k以上會自動算2k➔尾數；週日算4k➔尾數)
-                if (dayOfWeek === 3 && pSecs.length >= 2 && pSecs[1] > 0) {
+                if (groupMode === "2000M" && pSecs.length >= 2 && pSecs[1] > 0) {
                     const dec = ((pSecs[pSecs.length - 1] - pSecs[1]) / pSecs[1]) * 100;
                     wedS4Sum += dec; wedS4Count++;
-                } else if (dayOfWeek === 0 && pSecs.length >= 4 && pSecs[3] > 0) {
+                } else if (groupMode === "4000M" && pSecs.length >= 4 && pSecs[3] > 0) {
                     const dec = ((pSecs[pSecs.length - 1] - pSecs[3]) / pSecs[3]) * 100;
                     sunS4Sum += dec; sunS4Count++;
                 }
@@ -521,14 +531,14 @@
                 durMin = parseInt(durParts[0]) + (parseInt(durParts[1]) / 60);
             }
 
-            if (dayOfWeek === 3) {
+            if (groupMode === "2000M") {
                 wedDist += distVal; wedCount++; wedNausea += nauVal; wedSpeed += speedVal; wedCal += calVal;
                 wedLogs.push(logItem);
                 if (trendFilter === 'wed' && durMin > 0) {
                     lineLabels.push(date.substring(5)); 
                     lineData.push(parseFloat(durMin.toFixed(2))); 
                 }
-            } else if (dayOfWeek === 0) {
+            } else if (groupMode === "4000M") {
                 sunDist += distVal; sunCount++; sunNausea += nauVal; sunSpeed += speedVal; sunCal += calVal;
                 sunLogs.push(logItem);
                 if (trendFilter === 'sun' && durMin > 0) {
@@ -538,9 +548,9 @@
             }
 
             let passFilter = false;
-            if(dayFilter === 'both' && (dayOfWeek === 3 || dayOfWeek === 0)) passFilter = true;
-            if(dayFilter === 'wed' && dayOfWeek === 3) passFilter = true;
-            if(dayFilter === 'sun' && dayOfWeek === 0) passFilter = true;
+            if(dayFilter === 'both' && (groupMode === "2000M" || groupMode === "4000M")) passFilter = true;
+            if(dayFilter === 'wed' && groupMode === "2000M") passFilter = true;
+            if(dayFilter === 'sun' && groupMode === "4000M") passFilter = true;
 
             if(passFilter) {
                 let x = null, y = null;
@@ -563,12 +573,11 @@
         document.getElementById('wedAvgCal').innerText = wedCount ? Math.round(wedCal / wedCount) + ' kcal' : '0 kcal';
         document.getElementById('wedAvgNausea').innerText = wedCount ? Math.round(wedNausea / wedCount) + ' %' : '0 %';
         
-        // 週三數據渲染 (2k-3k, 3k-4k 自動呈現為不變動 "--")
-        // 🟢 修正後的程式碼：將週三後段掉速精準挪到第二欄（2-3k 欄位變更為呈現 2-尾數 邏輯）
-document.getElementById('wedStage1').innerText = wedS1Count ? (wedS1Sum / wedS1Count).toFixed(2) + ' %' : '0.00 %';
-document.getElementById('wedStage2').innerText = wedS4Count ? (wedS4Sum / wedS4Count).toFixed(2) + ' %' : '0.00 %';
-document.getElementById('wedStage3').innerText = '--';
-document.getElementById('wedStage4').innerText = '--';
+        // 🟢 修正後的程式碼：依序將週三數據精準平移、補上橫線並防呆防死
+        document.getElementById('wedStage1').innerText = wedS1Count ? (wedS1Sum / wedS1Count).toFixed(2) + ' %' : '0.00 %';
+        document.getElementById('wedStage2').innerText = wedS4Count ? (wedS4Sum / wedS4Count).toFixed(2) + ' %' : '0.00 %';
+        document.getElementById('wedStage3').innerText = '--';
+        document.getElementById('wedStage4').innerText = '--';
 
         document.getElementById('sunTotalDist').innerText = sunDist.toFixed(2) + ' km';
         document.getElementById('sunTotalCount').innerText = sunCount + ' 次';
@@ -576,7 +585,6 @@ document.getElementById('wedStage4').innerText = '--';
         document.getElementById('sunAvgCal').innerText = sunCount ? Math.round(sunCal / sunCount) + ' kcal' : '0 kcal';
         document.getElementById('sunAvgNausea').innerText = sunCount ? Math.round(sunNausea / sunCount) + ' %' : '0 %';
         
-        // 週日數據渲染
         document.getElementById('sunStage1').innerText = sunS1Count ? (sunS1Sum / sunS1Count).toFixed(2) + ' %' : '0.00 %';
         document.getElementById('sunStage2').innerText = sunS2Count ? (sunS2Sum / sunS2Count).toFixed(2) + ' %' : '0.00 %';
         document.getElementById('sunStage3').innerText = sunS3Count ? (sunS3Sum / sunS3Count).toFixed(2) + ' %' : '0.00 %';
@@ -607,9 +615,7 @@ document.getElementById('wedStage4').innerText = '--';
             logs.sort((a, b) => b.nausea - a.nausea);
             for(let i=0; i<Math.min(3, logs.length); i++) {
                 const item = logs[i];
-                let typeText = i === 0 ? "🤮 邊際極點" : "🤢 高負載";
-                if (item.nausea < 30) typeText = "😊 輕鬆跑";
-                
+                let typeText = item.nausea >= 60 ? "🤮 邊際極點" : item.nausea >= 30 ? "🤢 高負載" : "😊 輕鬆跑";
                 const r = tbody.insertRow();
                 r.innerHTML = `<td>${item.date} (${typeText})</td><td><strong>${item.nausea}%</strong></td><td>${item.speed} km/h</td><td style="font-size:0.8rem; color:#6e6e73;">${item.env}</td>`;
             }
@@ -643,10 +649,10 @@ document.getElementById('wedStage4').innerText = '--';
         if (myChart) { myChart.destroy(); }
         
         let xLabel = 'X 軸指標', yLabel = 'Y 軸指標';
-        if(dimMode.includes('speed_nausea')) { xLabel='平均速度 (km/h)'; yLabel='體感不適指數 (%)'; }
+        if(dimMode.includes('speed_nausea')) { xLabel='平均速度 (km/h)'; yLabel='體感不適度 (%)'; }
         else if(dimMode.includes('temp_speed')) { xLabel='氣溫 (°C)'; yLabel='平均速度 (km/h)'; }
         else if(dimMode.includes('cad_speed')) { xLabel='平均步頻 (spm)'; yLabel='平均速度 (km/h)'; }
-        else { xLabel='溫濕度體感指數'; yLabel=dimMode.includes('nausea')?'體感不適指數 (%)':'平均速度 (km/h)'; }
+        else { xLabel='溫濕度體感指數'; yLabel=dimMode.includes('nausea')?'體感不適度 (%)':'平均速度 (km/h)'; }
 
         myChart = new Chart(ctx, {
             type: 'scatter',
@@ -667,22 +673,14 @@ document.getElementById('wedStage4').innerText = '--';
             options: {
                 responsive: true, maintainAspectRatio: false,
                 scales: {
-                    x: {
-                        title: { display: true, text: xLabel, color: '#1d1d1f' }, grid: { color: '#e2e2e7' }
-                    },
-                    y: {
-                        title: { display: true, text: yLabel, color: '#1d1d1f' }, grid: { color: '#e2e2e7' }
-                    }
+                    x: { title: { display: true, text: xLabel, color: '#1d1d1f' }, grid: { color: '#e2e2e7' } },
+                    y: { title: { display: true, text: yLabel, color: '#1d1d1f' }, grid: { color: '#e2e2e7' } }
                 },
                 plugins: {
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                let val = context.parsed.y;
-                                if(dimMode.includes('speed') && !dimMode.includes('nausea') && !dimMode.includes('temp_speed') && !dimMode.includes('cad_speed')) {
-                                    return `日期: ${context.raw.label} -> (X: ${context.raw.x}, Y: ${val} km/h)`;
-                                }
-                                return `日期: ${context.raw.label} -> (X: ${context.raw.x}, Y: ${val})`;
+                                return `日期: ${context.raw.label} -> (X: ${context.raw.x}, Y: ${context.parsed.y})`;
                             }
                         }
                     }
@@ -690,12 +688,8 @@ document.getElementById('wedStage4').innerText = '--';
             }
         });
 
-        // =======================================================
-        // 🚀 完全體選單更新：專屬組別「跑步總持續時間」歷史時間序列折線圖
-        // =======================================================
         const ctxLine = document.getElementById('trendLineChart').getContext('2d');
         if (trendLineChart) { trendLineChart.destroy(); }
-
         const isWed = trendFilter === 'wed';
 
         trendLineChart = new Chart(ctxLine, {
@@ -704,7 +698,7 @@ document.getElementById('wedStage4').innerText = '--';
                 labels: lineLabels, 
                 datasets: [
                     {
-                        label: isWed ? '🔵 週三訓練組 (跑步總時間推進線)' : '🔴 週日自主組 (跑步總時間推進線)',
+                        label: isWed ? '🔵 2000M 訓練組 (跑步總時間推進線)' : '🔴 4000M 訓練組 (跑步總時間推進線)',
                         data: lineData,
                         borderColor: isWed ? '#0066cc' : '#ff5722',
                         backgroundColor: isWed ? 'rgba(0, 102, 204, 0.04)' : 'rgba(255, 87, 34, 0.04)',
@@ -716,33 +710,15 @@ document.getElementById('wedStage4').innerText = '--';
             options: {
                 responsive: true, maintainAspectRatio: false,
                 scales: {
-                    x: {
-                        title: { display: true, text: '📅 訓練日期演進 (月-日)', color: '#1d1d1f', font: { weight: 'bold' } },
-                        grid: { display: false }
-                    },
+                    x: { title: { display: true, text: '📅 訓練日期演進 (月-日)', color: '#1d1d1f', font: { weight: 'bold' } }, grid: { display: false } },
                     y: {
                         title: { display: true, text: '⏱️ 跑步持續時間 (分:秒)', color: '#1d1d1f', font: { weight: 'bold' } },
                         grid: { color: '#e2e2e7' },
                         ticks: {
                             callback: function(value) {
-                                let mins = Math.floor(value);
-                                let secs = Math.round((value - mins) * 60);
+                                let mins = Math.floor(value); let secs = Math.round((value - mins) * 60);
                                 if (secs === 60) { mins++; secs = 0; }
                                 return (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
-                            }
-                        }
-                    }
-                },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                let val = context.parsed.y;
-                                let mins = Math.floor(val);
-                                let secs = Math.round((val - mins) * 60);
-                                if (secs === 60) { mins++; secs = 0; }
-                                let formattedTime = (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
-                                return context.dataset.label.split(' ')[0] + ' 總時間: ' + formattedTime;
                             }
                         }
                     }
@@ -793,10 +769,7 @@ document.getElementById('wedStage4').innerText = '--';
 
             const response = await fetch(API_URL, { 
                 method: "POST", 
-                headers: { 
-                    "Content-Type": "application/json",
-                    "X-Password": MY_SECRET_PASSWORD
-                }, 
+                headers: { "Content-Type": "application/json", "X-Password": MY_SECRET_PASSWORD }, 
                 body: JSON.stringify(payload) 
             });
             if(response.ok) { isEditing = false; fetchLogs(); } else { alert("儲存失敗：密碼驗證錯誤或權限不足"); }
@@ -809,10 +782,7 @@ document.getElementById('wedStage4').innerText = '--';
             if (MY_SECRET_PASSWORD === null) return;
 
             const response = await fetch(`${API_URL}/${selectedDate}`, { 
-                method: "DELETE",
-                headers: {
-                    "X-Password": MY_SECRET_PASSWORD
-                }
+                method: "DELETE", headers: { "X-Password": MY_SECRET_PASSWORD }
             }); 
             if(response.ok) { isEditing = false; fetchLogs(); } else { alert("刪除失敗：權限不足或密碼錯誤"); }
         }
