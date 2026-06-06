@@ -97,7 +97,7 @@
                 <div class="form-group"><label>平均配速</label><input type="text" id="pace" placeholder="自動計算"></div>
                 <div class="form-group"><label>平均速度 (km/h)</label><input type="text" id="speed" placeholder="自動計算"></div>
             </div>
-            <div class="form-group"><label>特別情境 / 備註標籤 (💡換天跑可手動填 2k 或 4k 強制分組)</label><input type="text" id="tag"></div>
+            <div class="form-group"><label>特別情境 / 備註標籤 (💡換天跑手動填 2k/2000m 或 4k/4000m 皆能識別分組)</label><input type="text" id="tag"></div>
             <div class="form-row">
                 <div class="form-group"><label>總步數 (步)</label><input type="text" id="steps"></div>
                 <div class="form-group"><label>消耗熱量 (大卡)</label><input type="text" id="calories"></div>
@@ -199,9 +199,9 @@
                     <td class="wednesday-text" style="font-weight: bold; color: #0066cc;">2k 組</td><td id="wedTotalDist">0.00 km</td><td id="wedTotalCount">0 次</td>
                     <td id="wedAvgSpeed">0.0 km/h</td><td id="wedAvgCal">0 kcal</td><td id="wedAvgNausea">0 %</td>
                     <td id="wedStage1" style="font-weight: bold; color: #0066cc;">0.00 %</td>
-                    <td id="wedStage2" style="font-weight: bold; color: #6e6e73;">--</td>
+                    <td id="wedStage2" style="font-weight: bold; color: #0066cc;">0.00 %</td>
                     <td id="wedStage3" style="font-weight: bold; color: #6e6e73;">--</td>
-                    <td id="wedStage4" style="font-weight: bold; color: #0066cc;">0.00 %</td>
+                    <td id="wedStage4" style="font-weight: bold; color: #6e6e73;">--</td>
                 </tr>
                 <tr>
                     <td class="sunday-text" style="font-weight: bold; color: #ff5722;">4k 組</td><td id="sunTotalDist">0.00 km</td><td id="sunTotalCount">0 次</td>
@@ -306,14 +306,23 @@
         return `${String(m).padStart(2,'0')}'${String(s).padStart(2,'0')}"`;
     }
 
-    // 💡 核心智慧分流判定演算法
+    // 💡 核心智慧分流判定演算法 (升級模糊比對 + 里程防呆)
     function getGroupMode(dateStr, tagText) {
         const tag = (tagText || "").toUpperCase();
-        // 優先權 1：如果標籤手動輸入了強制分組關鍵字
-        if (tag.includes("2k")) return "2k";
-        if (tag.includes("4k")) return "4k";
+        // 優先權 1：模糊標籤比對，支援 2k、2K、2000m、2000M / 4k、4K、4000m、4000M
+        if (tag.includes("2K") || tag.includes("2000M")) return "2k";
+        if (tag.includes("4K") || tag.includes("4000M")) return "4k";
         
-        // 優先權 2：如果沒有手動輸入，則照原本的星期幾自動 fallback 防呆
+        // 優先權 2：大數據自動清洗歷史資料防呆（只要總里程小於 3.5k 均吸納入 2k 短程組）
+        const currentData = db[dateStr];
+        if (currentData) {
+            const distVal = parseFloat(currentData.dist) || 0;
+            if (distVal > 0 && distVal < 3.5) {
+                return "2k";
+            }
+        }
+        
+        // 優先權 3：常態預設排班判定
         const dayOfWeek = new Date(dateStr).getDay();
         if (dayOfWeek === 3) return "2k";
         if (dayOfWeek === 0) return "4k";
@@ -352,7 +361,7 @@
             if(data.km_splits) {
                 splitBox.style.display = "block";
                 const splits = data.km_splits.split(',');
-                let html = `<strong>⏱️ 每公里拆解與逐公里衰退率分析：</strong><br>`;
+                let html = `<strong>⏱️ 每公里拆解與逐公里衰退率 analysis：</strong><br>`;
                 let pacesInSeconds = [];
                 
                 splits.forEach((timeStr, index) => {
@@ -478,7 +487,7 @@
 
         sortedDates.forEach(date => {
             const data = db[date]; 
-            const groupMode = getGroupMode(date, data.tag); // 💡 全面升級使用智慧標籤分組
+            const groupMode = getGroupMode(date, data.tag); 
             
             const distVal = parseFloat(data.dist) || 0; const nauVal = parseInt(data.nau) || 0;
             const speedVal = parseFloat(data.speed) || 0; const calVal = parseInt(data.calories) || 0;
@@ -573,7 +582,6 @@
         document.getElementById('wedAvgCal').innerText = wedCount ? Math.round(wedCal / wedCount) + ' kcal' : '0 kcal';
         document.getElementById('wedAvgNausea').innerText = wedCount ? Math.round(wedNausea / wedCount) + ' %' : '0 %';
         
-        // 🟢 修正後的程式碼：依序將週三數據精準平移、補上橫線並防呆防死
         document.getElementById('wedStage1').innerText = wedS1Count ? (wedS1Sum / wedS1Count).toFixed(2) + ' %' : '0.00 %';
         document.getElementById('wedStage2').innerText = wedS4Count ? (wedS4Sum / wedS4Count).toFixed(2) + ' %' : '0.00 %';
         document.getElementById('wedStage3').innerText = '--';
@@ -688,18 +696,51 @@
             }
         });
 
+        // =======================================================
+        // 🚀 完全體選單更新：專屬組別「跑步總持續時間」歷史時間序列折線圖（精準時間序列修正版）
+        // =======================================================
         const ctxLine = document.getElementById('trendLineChart').getContext('2d');
         if (trendLineChart) { trendLineChart.destroy(); }
         const isWed = trendFilter === 'wed';
 
+        // 💡 建立一個暫存陣列，把日期跟時間資料綁在一起，確保排序時不會「張冠李戴」
+        let trendPoints = [];
+        sortedDates.forEach(date => {
+            const data = db[date];
+            const groupMode = getGroupMode(date, data.tag);
+            
+            // 根據選單過濾目前要畫 2k 組還是 4k 組的折線
+            if ((isWed && groupMode === "2k") || (!isWed && groupMode === "4k")) {
+                let durParts = data.dur ? data.dur.split(':') : [];
+                let durMin = 0;
+                if (durParts.length === 2) {
+                    durMin = parseInt(durParts[0]) + (parseInt(durParts[1]) / 60);
+                }
+                if (durMin > 0) {
+                    trendPoints.push({
+                        dateKey: date,              // 用完整日期（如 2026-06-06）來做絕對排序
+                        label: date.substring(5),   // 顯示在畫面的月-日（如 06-06）
+                        value: parseFloat(durMin.toFixed(2))
+                    });
+                }
+            }
+        });
+
+        // 💡 核心修正：依照時間演進進行絕對排序，徹底解決下雨天換天跑導致的折線圖交叉打結問題
+        trendPoints.sort((a, b) => new Date(a.dateKey) - new Date(b.dateKey));
+
+        // 重新拆解成 Chart.js 要的陣列格式
+        const finalLabels = trendPoints.map(p => p.label);
+        const finalData = trendPoints.map(p => p.value);
+
         trendLineChart = new Chart(ctxLine, {
             type: 'line',
             data: {
-                labels: lineLabels, 
+                labels: finalLabels, 
                 datasets: [
                     {
                         label: isWed ? '🔵 2k 訓練組 (跑步總時間推進線)' : '🔴 4k 訓練組 (跑步總時間推進線)',
-                        data: lineData,
+                        data: finalData,
                         borderColor: isWed ? '#0066cc' : '#ff5722',
                         backgroundColor: isWed ? 'rgba(0, 102, 204, 0.04)' : 'rgba(255, 87, 34, 0.04)',
                         borderWidth: 3, pointRadius: 6, pointHoverRadius: 8,
@@ -719,6 +760,19 @@
                                 let mins = Math.floor(value); let secs = Math.round((value - mins) * 60);
                                 if (secs === 60) { mins++; secs = 0; }
                                 return (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let val = context.parsed.y;
+                                let mins = Math.floor(val); let secs = Math.round((val - mins) * 60);
+                                if (secs === 60) { mins++; secs = 0; }
+                                let formattedTime = (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
+                                return context.dataset.label.split(' ')[0] + ' 總時間: ' + formattedTime;
                             }
                         }
                     }
