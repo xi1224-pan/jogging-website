@@ -570,7 +570,7 @@
                 else if (dimMode === 'cad_speed' && cadVal) { x = cadVal; y = speedVal; }
 
                 if (x !== null && y !== null) {
-                    scatterPoints.push({ x: x, y: y, label: date.substring(5) });
+                    scatterPoints.push({ x: x, y: y, label: date.substring(5), fullDate: date });
                     xValues.push(x); yValues.push(y);
                 }
             }
@@ -653,6 +653,9 @@
             trendLinePoints.push({ x: maxX, y: slope * maxX + intercept });
         }
 
+// =======================================================
+        // 🚀 大數據科學散佈圖渲染（升級：合併檢視時自動啟動 2k/4k 雙色分流演算法）
+        // =======================================================
         const ctx = document.getElementById('scienceScatterChart').getContext('2d');
         if (myChart) { myChart.destroy(); }
         
@@ -662,13 +665,27 @@
         else if(dimMode.includes('cad_speed')) { xLabel='平均步頻 (spm)'; yLabel='平均速度 (km/h)'; }
         else { xLabel='溫濕度體感指數'; yLabel=dimMode.includes('nausea')?'體感不適度 (%)':'平均速度 (km/h)'; }
 
+        // 💡 智慧色彩動態分配器：若為合併檢視(both)，則依據資料本身的組別動態賦予藍色或橘色
+        let pointBackgroundColors = [];
+        if (dayFilter === 'both') {
+            pointBackgroundColors = scatterPoints.map(pt => {
+                // 利用原本綁定在點上的日期與標籤，回頭查詢它真正的組別
+                const realGroup = getGroupMode(pt.fullDate, db[pt.fullDate].tag);
+                return realGroup === '2k' ? '#0066cc' : '#ff5722'; // 2k 著藍色，4k 著橘色
+            });
+        } else {
+            // 若切換成單一組別檢視，則維持原本的單一配色
+            pointBackgroundColors = dayFilter === 'wed' ? '#0066cc' : '#ff5722';
+        }
+
         myChart = new Chart(ctx, {
             type: 'scatter',
             data: {
                 datasets: [
                     {
-                        label: '單次訓練數據落點', data: scatterPoints,
-                        backgroundColor: dayFilter==='wed'?'#0066cc':dayFilter==='sun'?'#8600e6':'#ff5722',
+                        label: dayFilter === 'both' ? '訓練數據落點 (藍: 2k組 / 橘: 4k組)' : '單次訓練數據落點', 
+                        data: scatterPoints,
+                        backgroundColor: pointBackgroundColors, // 💡 注入雙色矩陣
                         pointRadius: 6, pointHoverRadius: 8
                     },
                     {
