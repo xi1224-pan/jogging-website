@@ -97,7 +97,7 @@
                 <div class="form-group"><label>平均配速</label><input type="text" id="pace" placeholder="自動計算"></div>
                 <div class="form-group"><label>平均速度 (km/h)</label><input type="text" id="speed" placeholder="自動計算"></div>
             </div>
-            <div class="form-group"><label>特別情境 / 備註標籤 (💡換天跑可手動填 2000M 或 4000M 強制分組)</label><input type="text" id="tag"></div>
+            <div class="form-group"><label>特別情境 / 備註標籤 (💡換天跑可手動填 2k 或 4k 強制分組)</label><input type="text" id="tag"></div>
             <div class="form-row">
                 <div class="form-group"><label>總步數 (步)</label><input type="text" id="steps"></div>
                 <div class="form-group"><label>消耗熱量 (大卡)</label><input type="text" id="calories"></div>
@@ -161,9 +161,9 @@
                 <option value="cad_speed">5. 平均步頻 vs 平均速度 (步幅效益)</option>
             </select>
             <select id="analysisDayFilter" class="chart-select">
-                <option value="both">檢視：2000M & 4000M 全開放</option>
-                <option value="wed">檢視：只看 2000M 組</option>
-                <option value="sun">檢視：只看 4000M 組</option>
+                <option value="both">檢視：2k & 4k 全開放</option>
+                <option value="wed">檢視：只看 2k 組</option>
+                <option value="sun">檢視：只看 4k 組</option>
             </select>
         </div>
         <div style="font-weight: bold; color: #ff5722; margin-bottom: 5px;" id="correlationResult">相關係數 $r$ = 計算中...</div>
@@ -175,15 +175,15 @@
         <div class="chart-controls">
             <label>切換訓練組別：</label>
             <select id="trendDayFilter" class="chart-select">
-                <option value="wed">🔵 2000M 訓練組 (歷史趨勢)</option>
-                <option value="sun">🔴 4000M 訓練組 (歷史趨勢)</option>
+                <option value="wed">🔵 2k 訓練組 (歷史趨勢)</option>
+                <option value="sun">🔴 4k 訓練組 (歷史趨勢)</option>
             </select>
         </div>
         <div class="chart-container"><canvas id="trendLineChart"></canvas></div>
     </div>
 
     <div class="card">
-        <h2>📊 數據樞紐分析總覽 (2000M vs 4000M)</h2>
+        <h2>📊 數據樞紐分析總覽 (2k vs 4k)</h2>
         <table class="pivot-table">
             <thead>
                 <tr>
@@ -196,7 +196,7 @@
             </thead>
             <tbody>
                 <tr>
-                    <td class="wednesday-text" style="font-weight: bold; color: #0066cc;">2000M 組</td><td id="wedTotalDist">0.00 km</td><td id="wedTotalCount">0 次</td>
+                    <td class="wednesday-text" style="font-weight: bold; color: #0066cc;">2k 組</td><td id="wedTotalDist">0.00 km</td><td id="wedTotalCount">0 次</td>
                     <td id="wedAvgSpeed">0.0 km/h</td><td id="wedAvgCal">0 kcal</td><td id="wedAvgNausea">0 %</td>
                     <td id="wedStage1" style="font-weight: bold; color: #0066cc;">0.00 %</td>
                     <td id="wedStage2" style="font-weight: bold; color: #6e6e73;">--</td>
@@ -204,7 +204,7 @@
                     <td id="wedStage4" style="font-weight: bold; color: #0066cc;">0.00 %</td>
                 </tr>
                 <tr>
-                    <td class="sunday-text" style="font-weight: bold; color: #ff5722;">4000M 組</td><td id="sunTotalDist">0.00 km</td><td id="sunTotalCount">0 次</td>
+                    <td class="sunday-text" style="font-weight: bold; color: #ff5722;">4k 組</td><td id="sunTotalDist">0.00 km</td><td id="sunTotalCount">0 次</td>
                     <td id="sunAvgSpeed">0.0 km/h</td><td id="sunAvgCal">0 kcal</td><td id="sunAvgNausea">0 %</td>
                     <td id="sunStage1" style="font-weight: bold; color: #ff5722;">0.00 %</td>
                     <td id="sunStage2" style="font-weight: bold; color: #ff5722;">0.00 %</td>
@@ -217,14 +217,14 @@
 
     <div class="card" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
         <div>
-            <h3 style="font-size:1rem; margin-bottom:10px; color:#1d8127;">🚀 2000M 組 速度極端表 (Top 2 / Bottom 2)</h3>
+            <h3 style="font-size:1rem; margin-bottom:10px; color:#1d8127;">🚀 2k 組 速度極端表 (Top 2 / Bottom 2)</h3>
             <table class="pivot-table" id="wedSpeedTable">
                 <thead><tr><th>日期 (類型)</th><th>速度</th><th>不適度</th><th>環境特徵</th></tr></thead>
                 <tbody></tbody>
             </table>
         </div>
         <div>
-            <h3 style="font-size:1rem; margin-bottom:10px; color:#8600e6;">🔮 4000M 組 速度極端表 (Top 2 / Bottom 2)</h3>
+            <h3 style="font-size:1rem; margin-bottom:10px; color:#8600e6;">🔮 4k 組 速度極端表 (Top 2 / Bottom 2)</h3>
             <table class="pivot-table" id="sunSpeedTable">
                 <thead><tr><th>日期 (類型)</th><th>速度</th><th>不適度</th><th>環境特徵</th></tr></thead>
                 <tbody></tbody>
@@ -234,14 +234,14 @@
 
     <div class="card" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
         <div>
-            <h3 style="font-size:1rem; margin-bottom:10px; color:#ff5722;">🤮 2000M 組 體感生理極端表 (最不適 Top 3)</h3>
+            <h3 style="font-size:1rem; margin-bottom:10px; color:#ff5722;">🤮 2k 組 體感生理極端表 (最不適 Top 3)</h3>
             <table class="pivot-table" id="wedNauseaTable">
                 <thead><tr><th>日期 (類型)</th><th>不適度</th><th>速度</th><th>環境特徵</th></tr></thead>
                 <tbody></tbody>
             </table>
         </div>
         <div>
-            <h3 style="font-size:1rem; margin-bottom:10px; color:#e64a19;">🤮 4000M 組 體感生理極端表 (最不適 Top 3)</h3>
+            <h3 style="font-size:1rem; margin-bottom:10px; color:#e64a19;">🤮 4k 組 體感生理極端表 (最不適 Top 3)</h3>
             <table class="pivot-table" id="sunNauseaTable">
                 <thead><tr><th>日期 (類型)</th><th>不適度</th><th>速度</th><th>環境特徵</th></tr></thead>
                 <tbody></tbody>
@@ -310,13 +310,13 @@
     function getGroupMode(dateStr, tagText) {
         const tag = (tagText || "").toUpperCase();
         // 優先權 1：如果標籤手動輸入了強制分組關鍵字
-        if (tag.includes("2000M")) return "2000M";
-        if (tag.includes("4000M")) return "4000M";
+        if (tag.includes("2k")) return "2k";
+        if (tag.includes("4k")) return "4k";
         
         // 優先權 2：如果沒有手動輸入，則照原本的星期幾自動 fallback 防呆
         const dayOfWeek = new Date(dateStr).getDay();
-        if (dayOfWeek === 3) return "2000M";
-        if (dayOfWeek === 0) return "4000M";
+        if (dayOfWeek === 3) return "2k";
+        if (dayOfWeek === 0) return "4k";
         return "OTHER";
     }
 
@@ -502,24 +502,24 @@
 
                 if (pSecs.length >= 2 && pSecs[0] > 0) {
                     const dec = ((pSecs[1] - pSecs[0]) / pSecs[0]) * 100;
-                    if (groupMode === "2000M") { wedS1Sum += dec; wedS1Count++; }
-                    else if (groupMode === "4000M") { sunS1Sum += dec; sunS1Count++; }
+                    if (groupMode === "2k") { wedS1Sum += dec; wedS1Count++; }
+                    else if (groupMode === "4k") { sunS1Sum += dec; sunS1Count++; }
                 }
 
-                if (groupMode === "4000M" && pSecs.length >= 3 && pSecs[1] > 0) {
+                if (groupMode === "4k" && pSecs.length >= 3 && pSecs[1] > 0) {
                     const dec = ((pSecs[2] - pSecs[1]) / pSecs[1]) * 100;
                     sunS2Sum += dec; sunS2Count++;
                 }
 
-                if (groupMode === "4000M" && pSecs.length >= 4 && pSecs[2] > 0) {
+                if (groupMode === "4k" && pSecs.length >= 4 && pSecs[2] > 0) {
                     const dec = ((pSecs[3] - pSecs[2]) / pSecs[2]) * 100;
                     sunS3Sum += dec; sunS3Count++;
                 }
 
-                if (groupMode === "2000M" && pSecs.length >= 2 && pSecs[1] > 0) {
+                if (groupMode === "2k" && pSecs.length >= 2 && pSecs[1] > 0) {
                     const dec = ((pSecs[pSecs.length - 1] - pSecs[1]) / pSecs[1]) * 100;
                     wedS4Sum += dec; wedS4Count++;
-                } else if (groupMode === "4000M" && pSecs.length >= 4 && pSecs[3] > 0) {
+                } else if (groupMode === "4k" && pSecs.length >= 4 && pSecs[3] > 0) {
                     const dec = ((pSecs[pSecs.length - 1] - pSecs[3]) / pSecs[3]) * 100;
                     sunS4Sum += dec; sunS4Count++;
                 }
@@ -531,14 +531,14 @@
                 durMin = parseInt(durParts[0]) + (parseInt(durParts[1]) / 60);
             }
 
-            if (groupMode === "2000M") {
+            if (groupMode === "2k") {
                 wedDist += distVal; wedCount++; wedNausea += nauVal; wedSpeed += speedVal; wedCal += calVal;
                 wedLogs.push(logItem);
                 if (trendFilter === 'wed' && durMin > 0) {
                     lineLabels.push(date.substring(5)); 
                     lineData.push(parseFloat(durMin.toFixed(2))); 
                 }
-            } else if (groupMode === "4000M") {
+            } else if (groupMode === "4k") {
                 sunDist += distVal; sunCount++; sunNausea += nauVal; sunSpeed += speedVal; sunCal += calVal;
                 sunLogs.push(logItem);
                 if (trendFilter === 'sun' && durMin > 0) {
@@ -548,9 +548,9 @@
             }
 
             let passFilter = false;
-            if(dayFilter === 'both' && (groupMode === "2000M" || groupMode === "4000M")) passFilter = true;
-            if(dayFilter === 'wed' && groupMode === "2000M") passFilter = true;
-            if(dayFilter === 'sun' && groupMode === "4000M") passFilter = true;
+            if(dayFilter === 'both' && (groupMode === "2k" || groupMode === "4k")) passFilter = true;
+            if(dayFilter === 'wed' && groupMode === "2k") passFilter = true;
+            if(dayFilter === 'sun' && groupMode === "4k") passFilter = true;
 
             if(passFilter) {
                 let x = null, y = null;
@@ -698,7 +698,7 @@
                 labels: lineLabels, 
                 datasets: [
                     {
-                        label: isWed ? '🔵 2000M 訓練組 (跑步總時間推進線)' : '🔴 4000M 訓練組 (跑步總時間推進線)',
+                        label: isWed ? '🔵 2k 訓練組 (跑步總時間推進線)' : '🔴 4k 訓練組 (跑步總時間推進線)',
                         data: lineData,
                         borderColor: isWed ? '#0066cc' : '#ff5722',
                         backgroundColor: isWed ? 'rgba(0, 102, 204, 0.04)' : 'rgba(255, 87, 34, 0.04)',
